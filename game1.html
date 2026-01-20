@@ -190,6 +190,18 @@
   } from "./firebase.js";
 
   const GAME_ID = "horror_game_01";
+
+  // download links (replace later)
+  const FREE_DOWNLOADS = {
+    windows: "#",
+    linux: "#"
+  };
+
+  const PAID_DOWNLOADS = {
+    windows: "#",
+    linux: "#"
+  };
+
   let currentUser = null;
   let isLogin = true;
 
@@ -207,7 +219,7 @@
       loginBtn.style.display = "block";
       avatarBtn.style.display = "none";
       dropdown.style.display = "none";
-      showLoginToBuy();
+      showLoginRequired();
     }
   });
 
@@ -251,10 +263,12 @@
 
   forgotPass.onclick = () => forgotPassword(email.value);
 
-  // ===== GAME LOGIC =====
-  function showLoginToBuy() {
+  // ===== GAME UI STATES =====
+  function showLoginRequired() {
     actionArea.innerHTML = `
-      <button onclick="openLogin()">Login to Buy</button>
+      <h3>🔒 Login Required</h3>
+      <p>Please login to download the game.</p>
+      <button onclick="openLogin()">Login</button>
     `;
   }
 
@@ -264,27 +278,50 @@
 
   async function updateGameUI() {
     const data = await getUserData(currentUser.uid);
+    const isPaid = data?.purchased_games?.[GAME_ID];
 
-    if (data?.purchased_games?.[GAME_ID]) {
+    if (isPaid) {
       actionArea.innerHTML = `
-        <p>✅ You own this game</p>
-        <button onclick="downloadGame()">Download Game</button>
+        <h3>⭐ Paid Version (No Ads)</h3>
+        <button onclick="downloadPaid('windows')">🪟 Download Windows</button>
+        <button onclick="downloadPaid('linux')">🐧 Download Linux</button>
+
+        <hr>
+
+        <h4>Free Version (With Ads)</h4>
+        <button onclick="downloadFree('windows')">🪟 Download Windows</button>
+        <button onclick="downloadFree('linux')">🐧 Download Linux</button>
       `;
     } else {
       actionArea.innerHTML = `
-        <button onclick="buyGame()">Buy Game Rs.29</button>
+        <h3>Free Version (With Ads)</h3>
+        <button onclick="downloadFree('windows')">🪟 Download Windows</button>
+        <button onclick="downloadFree('linux')">🐧 Download Linux</button>
+
+        <hr>
+
+        <h3>Paid Version (No Ads)</h3>
+        <button onclick="buyGame()">💰 Pay ₹29 & Download</button>
       `;
     }
   }
 
+  // ===== DOWNLOAD HANDLERS =====
+  window.downloadFree = (os) => {
+    window.location.href = FREE_DOWNLOADS[os];
+  };
+
+  window.downloadPaid = (os) => {
+    window.location.href = PAID_DOWNLOADS[os];
+  };
+
+  // ===== PAYMENT PLACEHOLDER =====
   window.buyGame = () => {
     alert("Payment system will be added next.");
   };
-
-  window.downloadGame = () => {
-    alert("Download logic later.");
-  };
 </script>
+
 
 </body>
 </html>
+
