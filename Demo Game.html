@@ -136,7 +136,7 @@
 
 <!-- NAVBAR -->
 <div class="navbar">
-  <div class="brand">XyzGDev</div>
+  <div class="brand">XyzGameStdios</div>
 
   <div class="nav-right">
     <button id="loginBtn" class="login-btn">Login</button>
@@ -178,6 +178,10 @@
   <div id="actionArea">Checking status...</div>
 </div>
 
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+
 <script type="module">
   import {
     checkAuth,
@@ -189,7 +193,7 @@
     getUserData
   } from "./firebase.js";
 
-  const GAME_ID = "horror_game_01";
+  const GAME_ID = "demo_game";
 
   // download links (replace later)
   const FREE_DOWNLOADS = {
@@ -316,12 +320,50 @@
   };
 
   // ===== PAYMENT PLACEHOLDER =====
-  window.buyGame = () => {
-    alert("Payment system will be added next.");
+  window.buyGame = async () => {
+  const res = await fetch("http://localhost:5000/create-order", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      uid: currentUser.uid,
+      gameId: GAME_ID,
+    }),
+  });
+
+  const order = await res.json();
+
+  const options = {
+    key: "rzp_test_S62mluP1p9A9F8",
+    amount: order.amount,
+    currency: "INR",
+    name: "XyzGDev",
+    description: "Horror Forest - Paid Version",
+    order_id: order.id,
+
+    handler: async function (response) {
+      await fetch("http://localhost:5000/verify-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_signature: response.razorpay_signature,
+          uid: currentUser.uid,
+          gameId: GAME_ID,
+        }),
+      });
+
+      alert("Payment successful!");
+      location.reload();
+    },
   };
+
+  const rzp = new Razorpay(options);
+  rzp.open();
+};
+
 </script>
 
 
 </body>
 </html>
-
